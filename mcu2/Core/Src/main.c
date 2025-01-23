@@ -1,42 +1,25 @@
 /* USER CODE BEGIN Header */
-/**
-  ******************************************************************************
-  * @file           : main.c
-  * @brief          : Main program body
-  ******************************************************************************
-  * @attention
-  *
-  * Copyright (c) 2025 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
-  ******************************************************************************
-  */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#define L
+#
 
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
-
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
@@ -45,7 +28,8 @@ SPI_HandleTypeDef hspi2;
 UART_HandleTypeDef huart1;
 
 /* USER CODE BEGIN PV */
-
+static volatile uint8_t uart1_cmd_ready = 0;
+extern uint8_t shock_cnt[4];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -54,12 +38,16 @@ static void MX_GPIO_Init(void);
 static void MX_SPI2_Init(void);
 static void MX_USART1_UART_Init(void);
 /* USER CODE BEGIN PFP */
-
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
+    if (huart == &huart1) {
+    	uart1_cmd_ready = 1;
+        HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+    }
+}
 /* USER CODE END 0 */
 
 /**
@@ -70,7 +58,6 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -79,14 +66,12 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-
   /* USER CODE END Init */
 
   /* Configure the system clock */
   SystemClock_Config();
 
   /* USER CODE BEGIN SysInit */
-
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
@@ -94,13 +79,65 @@ int main(void)
   MX_SPI2_Init();
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
-
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  adxl372_Init();
+#ifdef M
+  AccelTriplet_t ac_data;
+  uint8_t size = 0;
+  char str[100] = {0};
+#endif
+
+#ifdef L
+  uint8_t cmd = 0;
+  uint8_t size = 0;
+  const uint8_t cmdSize = 1;
+  char str[100] = {0};
+
+  HAL_UART_Receive_IT(&huart1, &cmd, cmdSize);
+#endif
+
   while (1)
   {
+
+#ifdef L
+	  HAL_Delay(1);
+	  adxl372_Get_Shock();
+	  if(uart1_cmd_ready)
+	  {
+		  uart1_cmd_ready = 0;
+
+		  sprintf(str, "shock50_100 = %d, shock100_150 = %d, shock150+ = %d, maxShock = %dG\r\n",
+			  	  	  	  	  	shock_cnt[0], shock_cnt[1], shock_cnt[2], shock_cnt[3]);
+	  	  size = strlen(str);
+	  	  HAL_UART_Transmit(&huart1, &size, 1, HAL_MAX_DELAY);
+	  	  HAL_UART_Transmit(&huart1, (uint8_t*)str, size, HAL_MAX_DELAY);
+	  	  HAL_UART_Receive_IT(&huart1, &cmd, cmdSize);
+	  	  for(int i = 0; i < 4; i++)
+	  	  {
+		  	  shock_cnt[i] = 0;
+	  	  }
+
+}
+
+
+#endif
+
+#ifdef M
+	  HAL_Delay(1000);
+	  adxl372_Get_Highest_Peak_Accel_data(&ac_data);
+
+	  sprintf(str, "X = %dG, Y = %dG, Z = %dG\r\n",
+		  	  	  	  	 ac_data.x/10, ac_data.y/10, ac_data.z/10);
+  	  size = strlen(str);
+  	  HAL_UART_Transmit(&huart1, &size, 1, HAL_MAX_DELAY);
+  	  HAL_UART_Transmit(&huart1, (uint8_t*)str, size, HAL_MAX_DELAY);
+
+#endif
+
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -165,11 +202,9 @@ static void MX_SPI2_Init(void)
 {
 
   /* USER CODE BEGIN SPI2_Init 0 */
-
   /* USER CODE END SPI2_Init 0 */
 
   /* USER CODE BEGIN SPI2_Init 1 */
-
   /* USER CODE END SPI2_Init 1 */
   /* SPI2 parameter configuration*/
   hspi2.Instance = SPI2;
@@ -191,7 +226,6 @@ static void MX_SPI2_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN SPI2_Init 2 */
-
   /* USER CODE END SPI2_Init 2 */
 
 }
@@ -205,11 +239,9 @@ static void MX_USART1_UART_Init(void)
 {
 
   /* USER CODE BEGIN USART1_Init 0 */
-
   /* USER CODE END USART1_Init 0 */
 
   /* USER CODE BEGIN USART1_Init 1 */
-
   /* USER CODE END USART1_Init 1 */
   huart1.Instance = USART1;
   huart1.Init.BaudRate = 9600;
@@ -226,7 +258,6 @@ static void MX_USART1_UART_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN USART1_Init 2 */
-
   /* USER CODE END USART1_Init 2 */
 
 }
@@ -249,17 +280,17 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOA_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(ADXL372_CS_GPIO_Port, ADXL372_CS_Pin, GPIO_PIN_SET);
 
-  /*Configure GPIO pin : PC13 */
-  GPIO_InitStruct.Pin = GPIO_PIN_13;
+  /*Configure GPIO pin : LED_Pin */
+  GPIO_InitStruct.Pin = LED_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_PULLDOWN;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+  HAL_GPIO_Init(LED_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : ADXL372_CS_Pin */
   GPIO_InitStruct.Pin = ADXL372_CS_Pin;
@@ -273,7 +304,17 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-
+/*void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+    if (GPIO_Pin == ADXL372_INT2_Pin)
+    {
+    	detect2g += 1;
+    }
+    else if (GPIO_Pin == ADXL372_INT1_Pin)
+    {
+    	detect1g += 1;
+    }
+}*/
 /* USER CODE END 4 */
 
 /**
@@ -283,11 +324,6 @@ static void MX_GPIO_Init(void)
 void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
-  /* User can add his own implementation to report the HAL error return state */
-  __disable_irq();
-  while (1)
-  {
-  }
   /* USER CODE END Error_Handler_Debug */
 }
 
@@ -302,8 +338,6 @@ void Error_Handler(void)
 void assert_failed(uint8_t *file, uint32_t line)
 {
   /* USER CODE BEGIN 6 */
-  /* User can add his own implementation to report the file name and line number,
-     ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
   /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */
