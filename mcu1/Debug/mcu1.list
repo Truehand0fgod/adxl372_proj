@@ -932,26 +932,26 @@ static void MX_GPIO_Init(void)
  8000832:	f003 0380 	and.w	r3, r3, #128	@ 0x80
  8000836:	60fb      	str	r3, [r7, #12]
  8000838:	68fb      	ldr	r3, [r7, #12]
-  __HAL_RCC_GPIOB_CLK_ENABLE();
+  __HAL_RCC_GPIOA_CLK_ENABLE();
  800083a:	4b18      	ldr	r3, [pc, #96]	@ (800089c <MX_GPIO_Init+0xa8>)
  800083c:	6cdb      	ldr	r3, [r3, #76]	@ 0x4c
  800083e:	4a17      	ldr	r2, [pc, #92]	@ (800089c <MX_GPIO_Init+0xa8>)
- 8000840:	f043 0302 	orr.w	r3, r3, #2
+ 8000840:	f043 0301 	orr.w	r3, r3, #1
  8000844:	64d3      	str	r3, [r2, #76]	@ 0x4c
  8000846:	4b15      	ldr	r3, [pc, #84]	@ (800089c <MX_GPIO_Init+0xa8>)
  8000848:	6cdb      	ldr	r3, [r3, #76]	@ 0x4c
- 800084a:	f003 0302 	and.w	r3, r3, #2
+ 800084a:	f003 0301 	and.w	r3, r3, #1
  800084e:	60bb      	str	r3, [r7, #8]
  8000850:	68bb      	ldr	r3, [r7, #8]
-  __HAL_RCC_GPIOA_CLK_ENABLE();
+  __HAL_RCC_GPIOD_CLK_ENABLE();
  8000852:	4b12      	ldr	r3, [pc, #72]	@ (800089c <MX_GPIO_Init+0xa8>)
  8000854:	6cdb      	ldr	r3, [r3, #76]	@ 0x4c
  8000856:	4a11      	ldr	r2, [pc, #68]	@ (800089c <MX_GPIO_Init+0xa8>)
- 8000858:	f043 0301 	orr.w	r3, r3, #1
+ 8000858:	f043 0308 	orr.w	r3, r3, #8
  800085c:	64d3      	str	r3, [r2, #76]	@ 0x4c
  800085e:	4b0f      	ldr	r3, [pc, #60]	@ (800089c <MX_GPIO_Init+0xa8>)
  8000860:	6cdb      	ldr	r3, [r3, #76]	@ 0x4c
- 8000862:	f003 0301 	and.w	r3, r3, #1
+ 8000862:	f003 0308 	and.w	r3, r3, #8
  8000866:	607b      	str	r3, [r7, #4]
  8000868:	687b      	ldr	r3, [r7, #4]
 
@@ -1250,15 +1250,15 @@ void HAL_UART_MspInit(UART_HandleTypeDef* huart)
  8000a2c:	f003 0304 	and.w	r3, r3, #4
  8000a30:	60fb      	str	r3, [r7, #12]
  8000a32:	68fb      	ldr	r3, [r7, #12]
-    __HAL_RCC_GPIOB_CLK_ENABLE();
+    __HAL_RCC_GPIOD_CLK_ENABLE();
  8000a34:	4b21      	ldr	r3, [pc, #132]	@ (8000abc <HAL_UART_MspInit+0x1c4>)
  8000a36:	6cdb      	ldr	r3, [r3, #76]	@ 0x4c
  8000a38:	4a20      	ldr	r2, [pc, #128]	@ (8000abc <HAL_UART_MspInit+0x1c4>)
- 8000a3a:	f043 0302 	orr.w	r3, r3, #2
+ 8000a3a:	f043 0308 	orr.w	r3, r3, #8
  8000a3e:	64d3      	str	r3, [r2, #76]	@ 0x4c
  8000a40:	4b1e      	ldr	r3, [pc, #120]	@ (8000abc <HAL_UART_MspInit+0x1c4>)
  8000a42:	6cdb      	ldr	r3, [r3, #76]	@ 0x4c
- 8000a44:	f003 0302 	and.w	r3, r3, #2
+ 8000a44:	f003 0308 	and.w	r3, r3, #8
  8000a48:	60bb      	str	r3, [r7, #8]
  8000a4a:	68bb      	ldr	r3, [r7, #8]
     GPIO_InitStruct.Pin = GPIO_PIN_4|GPIO_PIN_5;
@@ -1281,14 +1281,14 @@ void HAL_UART_MspInit(UART_HandleTypeDef* huart)
  8000a6e:	4619      	mov	r1, r3
  8000a70:	4813      	ldr	r0, [pc, #76]	@ (8000ac0 <HAL_UART_MspInit+0x1c8>)
  8000a72:	f000 faed 	bl	8001050 <HAL_GPIO_Init>
-    GPIO_InitStruct.Pin = GPIO_PIN_1;
- 8000a76:	2302      	movs	r3, #2
+    GPIO_InitStruct.Pin = GPIO_PIN_2;
+ 8000a76:	2304      	movs	r3, #4
  8000a78:	f8c7 30b4 	str.w	r3, [r7, #180]	@ 0xb4
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
  8000a7c:	2302      	movs	r3, #2
  8000a7e:	f8c7 30b8 	str.w	r3, [r7, #184]	@ 0xb8
-    GPIO_InitStruct.Pull = GPIO_PULLUP;
- 8000a82:	2301      	movs	r3, #1
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+ 8000a82:	2300      	movs	r3, #0
  8000a84:	f8c7 30bc 	str.w	r3, [r7, #188]	@ 0xbc
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
  8000a88:	2303      	movs	r3, #3
@@ -1296,7 +1296,7 @@ void HAL_UART_MspInit(UART_HandleTypeDef* huart)
     GPIO_InitStruct.Alternate = GPIO_AF7_USART3;
  8000a8e:	2307      	movs	r3, #7
  8000a90:	f8c7 30c4 	str.w	r3, [r7, #196]	@ 0xc4
-    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+    HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
  8000a94:	f107 03b4 	add.w	r3, r7, #180	@ 0xb4
  8000a98:	4619      	mov	r1, r3
  8000a9a:	480b      	ldr	r0, [pc, #44]	@ (8000ac8 <HAL_UART_MspInit+0x1d0>)
@@ -1318,7 +1318,7 @@ void HAL_UART_MspInit(UART_HandleTypeDef* huart)
  8000abc:	40021000 	.word	0x40021000
  8000ac0:	48000800 	.word	0x48000800
  8000ac4:	40004800 	.word	0x40004800
- 8000ac8:	48000400 	.word	0x48000400
+ 8000ac8:	48000c00 	.word	0x48000c00
 
 08000acc <NMI_Handler>:
 /******************************************************************************/

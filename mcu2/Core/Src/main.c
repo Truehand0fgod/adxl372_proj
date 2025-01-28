@@ -6,7 +6,6 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #define L
-#
 
 /* USER CODE END Includes */
 
@@ -99,9 +98,10 @@ int main(void)
   HAL_UART_Receive_IT(&huart1, &cmd, cmdSize);
 #endif
 
+
+
   while (1)
   {
-
 #ifdef L
 	  HAL_Delay(1);
 	  adxl372_Get_Shock();
@@ -210,7 +210,7 @@ static void MX_SPI2_Init(void)
   hspi2.Instance = SPI2;
   hspi2.Init.Mode = SPI_MODE_MASTER;
   hspi2.Init.Direction = SPI_DIRECTION_2LINES;
-  hspi2.Init.DataSize = SPI_DATASIZE_4BIT;
+  hspi2.Init.DataSize = SPI_DATASIZE_8BIT;
   hspi2.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi2.Init.CLKPhase = SPI_PHASE_1EDGE;
   hspi2.Init.NSS = SPI_NSS_SOFT;
