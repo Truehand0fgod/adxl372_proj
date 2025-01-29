@@ -45,17 +45,12 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
-#include <stdlib.h>
 
-
-//typedef SPI_HandleTypeDef adxl_spi_handle;
-// #define adxl_spi_handle hspi3
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-extern uint8_t N;
 extern UART_HandleTypeDef huart1;
 #define L_ENDIAN
 
@@ -256,11 +251,11 @@ typedef struct {
     int16_t z;
 } AccelTriplet_t;
 
-typedef struct {
-    float x;
-    float y;
-    float z;
-} AccelTripletG_t;
+//typedef struct {
+//    float x;
+//    float y;
+//    float z;
+//} AccelTripletG_t;
 
 
 typedef struct {    

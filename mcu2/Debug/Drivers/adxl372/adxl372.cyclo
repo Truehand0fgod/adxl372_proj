@@ -20,7 +20,6 @@
 ../Drivers/adxl372/adxl372.c:216:5:adxl372_Get_ActivityStatus_Register	1
 ../Drivers/adxl372/adxl372.c:224:5:adxl372_Get_Highest_Peak_Accel_data	1
 ../Drivers/adxl372/adxl372.c:242:5:adxl372_Get_Accel_data	3
-../Drivers/adxl372/adxl372.c:267:17:adxl372_ConvertAccTripletToG	1
 ../Drivers/adxl372/adxl372.c:277:5:adxl372_Reset	1
 ../Drivers/adxl372/adxl372.c:283:5:adxl372_Configure_FIFO	4
 ../Drivers/adxl372/adxl372.c:316:5:adxl372_Get_FIFO_data	3

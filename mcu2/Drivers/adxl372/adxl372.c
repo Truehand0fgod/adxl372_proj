@@ -264,7 +264,7 @@ int adxl372_Get_Accel_data(AccelTriplet_t *accel_data)
     return err;
 }
 
-AccelTripletG_t adxl372_ConvertAccTripletToG(const AccelTriplet_t *triplet) {
+/*AccelTripletG_t adxl372_ConvertAccTripletToG(const AccelTriplet_t *triplet) {
 
 	AccelTripletG_t triplet_g = {0.0, 0.0, 0.0};
 	triplet_g.x = triplet->x * 100.0 / 1000.0;
@@ -272,7 +272,7 @@ AccelTripletG_t adxl372_ConvertAccTripletToG(const AccelTriplet_t *triplet) {
 	triplet_g.z = triplet->z * 100.0 / 1000.0;
 	return (triplet_g);
 
-}
+}*/
 
 int adxl372_Reset (void)
 {
