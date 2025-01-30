@@ -24,10 +24,12 @@
 /* Private variables ---------------------------------------------------------*/
 SPI_HandleTypeDef hspi2;
 
+TIM_HandleTypeDef htim2;
+
 UART_HandleTypeDef huart1;
 
 /* USER CODE BEGIN PV */
-static volatile uint8_t uart1_cmd_ready = 0;
+volatile uint8_t uart1_cmd_ready = 0;
 extern uint8_t shock_cnt[4];
 /* USER CODE END PV */
 
@@ -36,6 +38,7 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_SPI2_Init(void);
 static void MX_USART1_UART_Init(void);
+static void MX_TIM2_Init(void);
 /* USER CODE BEGIN PFP */
 /* USER CODE END PFP */
 
@@ -46,6 +49,10 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
     	uart1_cmd_ready = 1;
         HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
     }
+}
+int abs(int a)
+{
+	return a >= 0 ? a : -a;
 }
 /* USER CODE END 0 */
 
@@ -77,6 +84,7 @@ int main(void)
   MX_GPIO_Init();
   MX_SPI2_Init();
   MX_USART1_UART_Init();
+  MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
   /* USER CODE END 2 */
 
@@ -93,9 +101,12 @@ int main(void)
   uint8_t cmd = 0;
   uint8_t size = 0;
   const uint8_t cmdSize = 1;
+  AccelTriplet_t ac_data;
+  int16_t maxG = 0;
   char str[100] = {0};
 
   HAL_UART_Receive_IT(&huart1, &cmd, cmdSize);
+  HAL_TIM_Base_Start_IT(&htim2);
 #endif
 
 
@@ -103,18 +114,30 @@ int main(void)
   while (1)
   {
 #ifdef L
-	  HAL_Delay(1);
+	  //HAL_Delay(1);
 	  adxl372_Get_Shock();
+	  adxl372_Get_Accel_data(&ac_data);
+	  ac_data.x = abs(ac_data.x/10);
+	  ac_data.y = abs(ac_data.y/10);
+	  ac_data.z = abs(ac_data.z/10);
+	  if(ac_data.x > maxG)
+		  maxG = ac_data.x;
+	  if(ac_data.y > maxG)
+		  maxG = ac_data.y;
+	  if(ac_data.z > maxG)
+		  maxG = ac_data.z;
 	  if(uart1_cmd_ready)
 	  {
 		  uart1_cmd_ready = 0;
 
-		  sprintf(str, "shock50_100 = %d, shock100_150 = %d, shock150+ = %d, maxShock = %dG\r\n",
-			  	  	  	  	  	shock_cnt[0], shock_cnt[1], shock_cnt[2], shock_cnt[3]);
+		  sprintf(str, "shock50_100 = %d, shock100_150 = %d, shock150+ = %d, maxShock = %dG, maxG = %dG\r\n",
+			  	  	  	  	  	shock_cnt[0], shock_cnt[1], shock_cnt[2], shock_cnt[3], maxG);
+		  maxG = 0;
 	  	  size = strlen(str);
 	  	  HAL_UART_Transmit(&huart1, &size, 1, HAL_MAX_DELAY);
 	  	  HAL_UART_Transmit(&huart1, (uint8_t*)str, size, HAL_MAX_DELAY);
 	  	  HAL_UART_Receive_IT(&huart1, &cmd, cmdSize);
+	  	  HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
 	  	  for(int i = 0; i < 4; i++)
 	  	  {
 		  	  shock_cnt[i] = 0;
@@ -227,6 +250,51 @@ static void MX_SPI2_Init(void)
   }
   /* USER CODE BEGIN SPI2_Init 2 */
   /* USER CODE END SPI2_Init 2 */
+
+}
+
+/**
+  * @brief TIM2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM2_Init(void)
+{
+
+  /* USER CODE BEGIN TIM2_Init 0 */
+
+  /* USER CODE END TIM2_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM2_Init 1 */
+
+  /* USER CODE END TIM2_Init 1 */
+  htim2.Instance = TIM2;
+  htim2.Init.Prescaler = 10000;
+  htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim2.Init.Period = 20000;
+  htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim2, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM2_Init 2 */
+
+  /* USER CODE END TIM2_Init 2 */
 
 }
 

@@ -223,7 +223,15 @@ int adxl372_Get_ActivityStatus_Register(unsigned char *adxl_status)
 
 int adxl372_Get_Highest_Peak_Accel_data(AccelTriplet_t *max_peak)
 {
-    int err = adxl_read_reg_multiple(ADI_ADXL372_X_MAXPEAK_H, 6,
+
+    unsigned char status;
+    int err;
+    uint32_t Timeout = 0;
+    do {
+        adxl372_Get_Status_Register(&status);
+    } while (!(status & DATA_RDY) || (++Timeout < 2000));
+
+    err = adxl_read_reg_multiple(ADI_ADXL372_X_MAXPEAK_H, 6,
                                      (unsigned char *) max_peak);
 
 #ifdef L_ENDIAN
@@ -381,13 +389,12 @@ uint8_t adxl372_Init (void)
 	adxl372_Set_Noise_Mode(MEAS_LOW_NOISE);
 	adxl372_Configure_FIFO(0, STREAMED, XYZ_PEAK_FIFO);
 	adxl372_Set_Act_Proc_Mode(LOOPED);
-	adxl372_Set_Filters(0, 1);					// LPF, HPF
+	adxl372_Set_Filters(0, 1);					// LPF, HPF (1 mean enable)
 	adxl372_Set_Filter_Settle(FILTER_SETTLE_16);
 	adxl372_Set_Activity_Threshold(40, 0, 1);
 	adxl372_Set_Activity_Time(0);
 	adxl372_Set_Inactivity_Threshold(40, 0, 1);
 	adxl372_Set_Inactivity_Time(1);
-
 
 	adxl372_Set_Op_mode(FULL_BW_MEASUREMENT);
 
@@ -463,38 +470,19 @@ int spi_write_then_read(	   unsigned char *txbuf,
 {
   int err = 0;
 
-
   HAL_GPIO_WritePin(ADXL372_CS_GPIO_Port, ADXL372_CS_Pin, GPIO_PIN_RESET);
 
-  //HAL_Delay(1);
-
-  for(int i = 0; i < n_tx; i++)
-  {
-	  if(HAL_SPI_Transmit(&hspi2, &txbuf[i], 1, 50) != HAL_OK)
-	  {
-		  err = 1;
-	  }
+  if (n_tx > 0) {
+      if (HAL_SPI_Transmit(&hspi2, txbuf, n_tx, 500) != HAL_OK) {
+          err = 1;
+      }
   }
 
-  //HAL_Delay(1);
-/*  for(count = 0; count < n_tx; count++)
-  {
-    SPI.transfer((unsigned char)txbuf[count]);
-  }*/
-
-
-  for(int i = 0; i < n_rx; i++)
-  {
-	  if(HAL_SPI_Receive(&hspi2, &rxbuf[i], 1, 50) != HAL_OK)
-	  {
-		  err = 2;
-	  }
+  if (n_rx > 0) {
+      if (HAL_SPI_Receive(&hspi2, rxbuf, n_rx, 500) != HAL_OK) {
+          err = 2;
+      }
   }
-
-/*  for(count = 0; count < n_rx; count++)
-  {
-    rxbuf[count] = SPI.transfer(0xAA);
-  }*/
 
   HAL_GPIO_WritePin(ADXL372_CS_GPIO_Port, ADXL372_CS_Pin, GPIO_PIN_SET);
 
